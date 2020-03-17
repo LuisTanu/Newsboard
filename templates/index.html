@@ -139,13 +139,22 @@
                     <h3 class="item-title">Table</h3>
 
                     <p>
-                    input the file only in Excel
+                    Table creation
                     </p>
-                    <form >
-                        <input type="file" id="myFile" name="filename">
+                    {% if selected %}
+                    <form method="POST" action="/process2">
+                        <label>table name</label>
+                        <input id="Tb_name" name="filename">
+                        <label>column</label>
+                        <input id="columns" name="columns">
                         <input type="submit">
+                         <a type="button" class="btn btn-primary " href="{{url_for('home')}}">back</a>
                     </form>
-
+                    {% else %}
+                    <a type="button" class="btn btn-primary pull-left" href="{{url_for('process')}}">Create now</a>
+                    <a type="button" class="btn btn-primary pull-left" href="{{url_for('tabloid')}}">see existing table</a>
+                    <a type="button" class="btn btn-primary pull-left" href="{{url_for('tabloid')}}">delete table</a>
+                    {% endif %}
 
 
             </div> <!-- end about-desc__slider -->
