@@ -31,7 +31,8 @@
 
 </head>
 
-<body id="top">
+<body id="top" onload="noBack();"
+	onpageshow="if (event.persisted) noBack();" onunload="">
 
     <div id="preloader">
         <div id="loader"></div>
@@ -100,14 +101,34 @@
         <div class="blog-content-wrap">
             {{Tb_name}}
             <!-- baca tabel row yang sudah dibuat/submit (save excel stelah di finish) pake temporary nyimpen semua submitted data -->
-            <form>
+            {% if changer %}
+                {% for z in range(rows) %}
+                <br><tr>
+                    {% for y in range(columns) %}
+                    <!--isi changer = [columns,columns,columns] yang setiap columnsnya adalah jumlah kolom, isi changer sebanyak jumlah row-->
+                    <!--isi changer pertama harus dibuat minus biar row awal keambil-->
+                    <!-- masuk if untuk ambil changer awal, masuk else untuk ambil isi changer kedua dst-->
+                        {% if z == 0 %}
+                        <th>{{stored[y + (columns+changer[0])]}}</th>
+                        {% else %}
+                        <!--[1 : z] maksudnya ambil data ke 1 sampai ke z, jgn lupa index mulai dri 0 jadi data ke 1 adalah data kedua-->
+                        <!--[1 : 1] adlah nol dari pythonny (+ column karena pada z=1 jadinya [1:1]=0 maka stored[column] kalo udh mo ambil row ketiga jadi nambah [1:2]=column jadinya stored(column + column)dst)-->
+                        <th>{{stored[y + (columns + add_function(changer[1:z]))]}}</th>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            {% endif %}
+            <form method="post" action="/storing_data">
              <tr>
                  {% for x in range(columns) %}
-                 <th><input></th>
+                 <th><input name={{'x'}} required></th>
                  {% endfor %}
              </tr>
                 <button type="submit">submit nyaa?</button>
-                <button type="submit">owari nyaa?</button>
+                <a href="/save_reset" class="btn btn-primary btn-lg" role="button">owari nyaa?</a>
+                <a href="/back" class="btn btn-primary btn-lg" role="button">modoru nyaa?</a>
+                <a href="/cancel" class="btn btn-primary btn-lg" role="button">kyanseru nyaa?</a>
             </form>
 
 

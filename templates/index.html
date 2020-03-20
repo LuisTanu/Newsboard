@@ -34,8 +34,13 @@
 
 
 </head>
-
+{% if warning %}
+<body id="top" onload="Warn()">
+{% elif warning2 %}
+<body id="top" onload="Warn()">
+{% else %}
 <body id="top">
+{% endif %}
 
     <div id="preloader">
         <div id="loader"></div>
@@ -148,12 +153,19 @@
                         <label>column</label>
                         <input id="columns" name="columns">
                         <input type="submit">
-                         <a type="button" class="btn btn-primary " href="{{url_for('home')}}">back</a>
+                        <a type="button" class="btn btn-primary " href="{{url_for('home')}}">back</a>
                     </form>
+                    {% elif lister %}
+                        <form action="/deleted" method="post">
+                          {% for x in lister %}
+                          <button name="submit_button" type="submit" value='{{x}}'>{{x}}</button>
+                          {% endfor %}
+                        </form>
+                        <a type="button" class="btn btn-primary " href="{{url_for('home')}}">back</a>
                     {% else %}
                     <a type="button" class="btn btn-primary pull-left" href="{{url_for('process')}}">Create now</a>
-                    <a type="button" class="btn btn-primary pull-left" href="{{url_for('tabloid')}}">see existing table</a>
-                    <a type="button" class="btn btn-primary pull-left" href="{{url_for('tabloid')}}">delete table</a>
+                    <a type="button" class="btn btn-primary pull-left" href="{{url_for('process_delete')}}">edit existing table</a>
+                    <a type="button" class="btn btn-primary pull-left" href="{{url_for('process_delete')}}">delete table</a>
                     {% endif %}
 
 
@@ -587,6 +599,21 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 
     <!-- Java Script
     ================================================== -->
+    {% if warning %}
+        <script>
+            function Warn() {
+              alert("this table is exist please delete or use other name");
+            }
+        </script>
+    {% endif %}
+    {% if warning2 %}
+        <script>
+            function Warn() {
+              alert("table name not detected please create new table or edit table");
+            }
+        </script>
+    {% endif %}
+
     <script src="./static/js/jquery-3.2.1.min.js"></script>
     <script src="./static/js/plugins.js"></script>
     <script src="./static/js/main.js"></script>
