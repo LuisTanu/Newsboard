@@ -38,6 +38,8 @@
 <body id="top" onload="Warn()">
 {% elif warning2 %}
 <body id="top" onload="Warn()">
+{% elif warning3 %}
+<body id="top" onload="Warn()">
 {% else %}
 <body id="top">
 {% endif %}
@@ -162,9 +164,16 @@
                           {% endfor %}
                         </form>
                         <a type="button" class="btn btn-primary " href="{{url_for('home')}}">back</a>
+                    {% elif lister1 %}
+                        <form action="/view_process" method="post">
+                          {% for x in lister1 %}
+                          <button name="submit_button" type="submit" value='{{x}}'>{{x}}</button>
+                          {% endfor %}
+                        </form>
+                        <a type="button" class="btn btn-primary " href="{{url_for('home')}}">back</a>
                     {% else %}
                     <a type="button" class="btn btn-primary pull-left" href="{{url_for('process')}}">Create now</a>
-                    <a type="button" class="btn btn-primary pull-left" href="{{url_for('process_delete')}}">edit existing table</a>
+                    <a type="button" class="btn btn-primary pull-left" href="{{url_for('view_table')}}">edit existing table</a>
                     <a type="button" class="btn btn-primary pull-left" href="{{url_for('process_delete')}}">delete table</a>
                     {% endif %}
 
@@ -610,6 +619,13 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
         <script>
             function Warn() {
               alert("table name not detected please create new table or edit table");
+            }
+        </script>
+    {% endif %}
+    {% if warning3 %}
+        <script>
+            function Warn() {
+              alert("please try again");
             }
         </script>
     {% endif %}

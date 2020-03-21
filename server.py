@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, url_for, session
 from openpyxl import Workbook, load_workbook
 app = Flask(__name__)
+
+app.config['SECRET_KEY'] = 'thisissecret'
 
 class temporary:
     # table buat nama tabel yang di buat
@@ -12,6 +14,8 @@ class temporary:
     changer = []
     added = None
     lister = []
+    viewing = []
+    changes = 0
 
     # coba panggil function
     def add_function(A):
@@ -24,6 +28,8 @@ class temporary:
 def home():
 
     return render_template('index.html')
+
+
 @app.route('/process',methods=['get'])
 def process():
     selected = 1
@@ -127,6 +133,19 @@ def save_reset():
                 # makanya kita indexing dri blakang gara2 geser yang dimasukin awal jadi yang terakhir.
                 index = index + columns
                 #index diata diupdate dengan rumus yg terter diatas karena dari row1kolom1 ke row2kolom1 harus lompat sebanyak (column-1)
+        # untuk jadiin row trakir ke row pertama dst ato g kebalik
+        again = []
+        for idr, row in enumerate(ws.rows):
+            reverse = []
+            idx2 = idr + 1
+            for cols in ws.columns:
+                reverse.append(cols[-idx2].value)
+            again.append(reverse)
+        ws = wb.get_sheet_by_name(temporary.table)
+        wb.remove_sheet(ws)
+        ws = wb.create_sheet(temporary.table)
+        for item in again:
+            ws.append(item)
         wb.save(filename='data.xlsx')
         # reset smua value
         temporary.table = None
@@ -142,6 +161,11 @@ def cancel():
     temporary.columns = None
     temporary.changer = []
     temporary.added = None
+    temporary.lister = []
+    temporary.viewing = []
+    temporary.changes = 0
+    if 'viewed' in session:
+        session.pop('viewed', None)  # delete visits
     return redirect('/')
 @app.route('/back')
 def back():
@@ -167,8 +191,9 @@ def process_delete():
         wb = load_workbook(filename='data.xlsx')
         Q =len(wb.sheetnames)
         Q = int(Q)
+        temporary.lister = []
         lister = []
-        # perlu mulai dari satu soalnya sheet paling awal di excelny jgn di apus
+        # perlu mulai dari satu soalnya sheet paling awal di excelny jgn di apus ato g nanti [1:1] ga bisa baca sheet ny kluar ny NONE
         for x in wb.sheetnames[1:Q]:
             lister.append(x)
             temporary.lister.append(x)
@@ -206,21 +231,29 @@ def deleted():
     return render_template('index.html', lister=lister)
 @app.route('/view_table')
 def view_table():
+    # process awal nampilin semua table
     try:
         wb = load_workbook(filename='data.xlsx')
-        lister = []
+        #untuk memastikan temporary.lister kosong
+        temporary.lister = []
+        #isi lister
+        lister1 = []
         Q = len(wb.sheetnames)
         Q = int(Q)
         # perlu mulai dari satu soalnya sheet paling awal di excelny jgn di apus
         for x in wb.sheetnames[1:Q]:
-            lister.append(x)
+            lister1.append(x)
             temporary.lister.append(x)
-        return render_template('index.html', lister=lister)
+        return render_template('index.html', lister1=lister1)
     except:
         warning2 = "table name not detected please create new table or edit table"
         return render_template('index.html', warning2=warning2)
 @app.route('/view_process', methods=['POST'])
 def view_process():
+    #proces tengah untuk dapetin nama table yang nanti akan di panggil untuk root selanjutnya
+    lister = temporary.lister
+    wb = load_workbook(filename='data.xlsx')
+    temporary.table = None
     if request.method == 'POST':
         for x in lister:
             x = str(x)
@@ -230,18 +263,95 @@ def view_process():
 
                         if item == x:
                             Tb_name = str(item)
+                            temporary.table = Tb_name
+                            ws = wb[Tb_name]
+                            # make sure temporary.viewing is empty
+                            temporary.viewing = []
+                            for idx, rows in enumerate(ws.rows):
+                                # isi dri temporary.viewing adalah ([row 1],[row 2], ....) dimana row 1 isi nya [col1,col2,col3,...]>>place_temp
+                                place_temp = []
+                                for cols in ws.columns:
+                                    place_temp.append(cols[idx].value)
+                                temporary.viewing.append(place_temp)
 
-                            return redirect(url_for('viewed', Tb_name=Tb_name))
+                            return redirect(url_for('viewed'))
             except:
                 pass  # do something else
     return '<h1>view_process error</h1>'
-@app.route('/viewed/<Tb_name>')
-def viewed(Tb_name):
-    wb = load_workbook(filename='data.xlsx')
-    ws = wb[Tb_name]
-
-    return render_template('style.html')
-
+@app.route('/viewed')
+def viewed():
+    if 'viewed' in session:
+        session['viewed'] = session.get('viewed') + 1  # reading and updating session data
+    else:
+        session['viewed'] = 1  # setting session data
+        # buat ngecek apakah user menggunakan backk button browser setiap sesi bertambah maka seharusnya changes bertambah
+        # param changes harus =1 karena session['viewed'] awal ny 1 changes ny msh 0
+    param_changes = session['viewed'] - temporary.changes
+    if param_changes == 1:
+        #page tabel yang terpilih temporary.table dan temporary.viewing sdh terisi sebelum masuk route ini.
+        Tb_name = temporary.table
+        fnally = temporary.viewing
+        print('fnally={}'.format(fnally))
+        index = []
+        for idx, item in enumerate(fnally):
+            index.append(idx)
+        # combine = [[1,[row1],[2,[row2],....]]] biar bisa dpt idx ny di html soalnya jinja g bisa pake enumerate
+        combine = zip(index, fnally)
+        # untuk <input> ny sesuai sebanyak kolom
+        columns = len(temporary.viewing[0])
+        return render_template('styles.html', fnally=combine, Tb_name=Tb_name, columns=columns)
+    else:
+        warning3 = 'please try again'
+        session.pop('viewed', None)  # delete visits
+        temporary.changes = 0
+        return render_template('index.html', warning3=warning3)
+@app.route('/edit_to_del',methods=['POST'])
+def edit_to_del():
+    # process layer terakir untuk penghapusan sebelm user submit dan di save excelnya
+    fnally = temporary.viewing
+    try:
+        # bwt dapetin index row yg mw dihapus
+        for idx, x in enumerate(fnally):
+            stridx = str(idx)
+            if request.form['submit_button'] == stridx:
+                temporary.viewing.pop(idx)
+                temporary.changes = temporary.changes + 1
+                return redirect(url_for('viewed'))
+    except:
+        pass  # do something else
+    return "<h1>error in edit_to_del</h1>"
+@app.route('/edit_to_insert',methods={'POST'})
+def edit_to_insert():
+    place_temp = []
+    #temporary.viewing untuk ambil column
+    for idx, x in enumerate(temporary.viewing[0]):
+        idx = str(idx)
+        send = request.form[idx]
+        place_temp.append(send)
+    temporary.viewing.append(place_temp)
+    print(temporary.viewing)
+    temporary.changes = temporary.changes + 1
+    return redirect(url_for('viewed'))
+@app.route('/saving')
+def saving():
+    if temporary.table == None:
+        warning3 = 'please try again'
+        return render_template('index.html', warning3=warning3)
+    else:
+        wb = load_workbook(filename='data.xlsx')
+        # hapus sheet buat baru dgn data baru dari temporary.viewing
+        std = wb.get_sheet_by_name(temporary.table)
+        wb.remove_sheet(std)
+        wb.save('data.xlsx')
+        ws = wb.create_sheet(temporary.table)
+        for row in temporary.viewing:
+            ws.append(row)
+        wb.save('data.xlsx')
+        session.pop('viewed', None)  # delete visits
+        temporary.viewing = []
+        temporary.changes = 0
+        temporary.table = None
+        return render_template('index.html')
 @app.route('/blog')
 def blog():
     return render_template('blog.html')

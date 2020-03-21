@@ -122,7 +122,7 @@
             <form method="post" action="/storing_data">
              <tr>
                  {% for x in range(columns) %}
-                 <th><input name={{'x'}} required></th>
+                 <th><input name='{{x}}' required></th>
                  {% endfor %}
              </tr>
                 <button type="submit">submit nyaa?</button>

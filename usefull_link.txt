@@ -1,0 +1,8 @@
+https://www.w3schools.com/tags/tag_thead.asp
+https://www.datasciencelearner.com/python-ajax-json-request-form-flask/
+https://stackoverflow.com/questions/14762775/ajax-if-condition
+https://www.htmlgoodies.com/tutorials/buttons/article.php/3478911/Disabling-the-Back-Button.htm
+https://www.reddit.com/r/flask/comments/afgks4/how_to_get_a_javascript_function_to_call_a_flask/
+https://stackoverflow.com/questions/29504067/render-an-editable-table-using-flask-jinja2-templates-then-process-the-form-da
+https://overiq.com/flask-101/sessions-in-flask/
+https://mdbootstrap.com/plugins/jquery/full-calendar/

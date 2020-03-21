@@ -387,35 +387,34 @@
 
                 <h3>Tables</h3>
                 <p>Be sure to use properly formed table markup with <code>&lt;thead&gt;</code> and <code>&lt;tbody&gt;</code> when building a <code>table</code>.</p>
-
+                {% if fnally %}
                 <div class="table-responsive">
-
+                    <form action="/edit_to_del" method="post">
                     <table>
-                            <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Age</th>
-                                <th>Sex</th>
-                                <th>Location</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>Naruto Uzumaki</td>
-                                <td>16</td>
-                                <td>Male</td>
-                                <td>Konoha</td>
-                            </tr>
-                            <tr>
-                                <td>Sakura Haruno</td>
-                                <td>16</td>
-                                <td>Female</td>
-                                <td>Konoha</td>
-                            </tr>
-                            </tbody>
+                        {% for idx,row in fnally %}
+                        <tr>
+                            {% for col in row %}
+                            <td>{{col}}</td>
+                            {% endfor %}
+                            <td><button name="submit_button" type="submit" value='{{idx}}'>delete row</button></td>
+                        </tr>
+                        {% endfor %}
                     </table>
-
+                    </form>
+                    <form action="/edit_to_insert" method="post">
+                        <table>
+                            <tr>
+                                {% for idx in range(columns) %}
+                                        <td><input id="Tb_name" name="{{idx}}"></td>
+                                {% endfor %}
+                                <button name="enter_button" type="submit" >submit row</button>
+                            </tr>
+                        </table>
+                    </form>
+                    <a type="button" class="btn btn-primary " href="{{url_for('saving')}}">SAVE</a>
+                    <a type="button" class="btn btn-primary " href="{{url_for('cancel')}}">Cancel</a>
                 </div>
+                {% endif %}
 
             </div>
             
@@ -577,5 +576,6 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
     <script src="./static/js/jquery-3.2.1.min.js"></script>
     <script src="./static/js/plugins.js"></script>
     <script src="./static/js/main.js"></script>
+
 
 </body>
