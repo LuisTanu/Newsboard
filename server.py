@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from openpyxl import Workbook, load_workbook
+import os
+import excel2img
 app = Flask(__name__)
+
 
 app.config['SECRET_KEY'] = 'thisissecret'
 
@@ -147,6 +150,7 @@ def save_reset():
         for item in again:
             ws.append(item)
         wb.save(filename='data.xlsx')
+        excel2img.export_img("data.xlsx", "./static/test_pic/"+str(temporary.table)+".png", str(temporary.table), None)
         # reset smua value
         temporary.table = None
         temporary.columns = None
@@ -220,11 +224,17 @@ def deleted():
                             item = str(item)
                             temp = wb[item]
                             wb.remove_sheet(temp)
-
-                            lister.remove(x)
-
-                            wb.save(filename='data.xlsx')
-                            return render_template('index.html', lister=lister)
+                            security = []
+                            for filename in os.listdir("./static/test_pic"):
+                                if filename == (item + ".png"):
+                                    security.append(filename)
+                                    os.remove("./static/test_pic/" + item + ".png")
+                            if security == []:
+                                return '<h>not found!</h>'
+                            else:
+                                lister.remove(x)
+                                wb.save(filename='data.xlsx')
+                                return render_template('index.html', lister=lister)
             except:
                 print("excep")
                 pass  # do something else
@@ -347,6 +357,8 @@ def saving():
         for row in temporary.viewing:
             ws.append(row)
         wb.save('data.xlsx')
+        excel2img.export_img("data.xlsx", "./static/test_pic/" + str(temporary.table) + ".png", str(temporary.table),
+                             None)
         session.pop('viewed', None)  # delete visits
         temporary.viewing = []
         temporary.changes = 0
@@ -361,5 +373,16 @@ def tabloid():
 @app.route('/styles')
 def style():
     return render_template('styles.html')
+
+@app.route('/gallery')
+def gallery():
+    folder = './static/test_pic'
+    images = []
+    for filename in os.listdir(folder):
+        images.append(filename)
+    print(images)
+    return render_template('gallery1.html', images=images)
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5005, debug=True)
