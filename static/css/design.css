@@ -1,0 +1,112 @@
+body {
+  height: 100%;
+}
+
+body {
+  background: #A9A9A9;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 1.0rem;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1.882;
+  color: rgba(0, 0, 0, 0.7);
+  margin: 0;
+  padding: 0;
+}
+
+.hero-image{
+  background-image: url("../../static/img/img1.jpg");
+  background-color: #cccccc;
+  height: 500px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+}
+.container {
+  position: relative;
+  font-family: Arial;
+}
+.text-block-header {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: black;
+  color: white;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+p {
+  font-family: verdana;
+  font-size: 20px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+tr:nth-child(odd) {background-color: light blue;}
+tr:nth-child(even) {background-color: #f2f2f2;}
+
+.font-opensans {
+  font-family: "Open Sans", "Arial", "Helvetica Neue", sans-serif;
+}
+
+.fade-in {
+  animation: fadeIn ease 10s;
+  -webkit-animation: fadeIn ease 10s;
+  -moz-animation: fadeIn ease 10s;
+  -o-animation: fadeIn ease 10s;
+  -ms-animation: fadeIn ease 10s;
+}
+@keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+
+@-moz-keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+
+@-webkit-keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+
+@-o-keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+
+@-ms-keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+}

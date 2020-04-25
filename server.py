@@ -1,11 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from openpyxl import Workbook, load_workbook
 import os
-import excel2img
+from werkzeug.utils import secure_filename
 app = Flask(__name__)
 
-
+UPLOAD_FOLDER = './static/test_pic/'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['SECRET_KEY'] = 'thisissecret'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 class temporary:
     # table buat nama tabel yang di buat
@@ -27,13 +29,35 @@ class temporary:
     # syntax manggil def add_function di html
     app.jinja_env.globals.update(add_function=add_function)
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+class Tbs:
+    def __init__(tb_att, column):
+        tb_att.column = column
+
 @app.route('/')
 def home():
+
+    return render_template('index1.html')
+@app.route('/home_A')
+def home_A():
 
     return render_template('index.html')
 
 
-@app.route('/process',methods=['get'])
+# Route for handling the login page logic
+@app.route('/login', methods=['POST'])
+def do_admin_login():
+    if request.form['password'] == '0000' and request.form['username'] == 'root':
+        return render_template('index.html')
+    else:
+        flash('wrong password!')
+        return home()
+
+
+@app.route('/process', methods=['get'])
 def process():
     selected = 1
     # just to make sure everything restart
@@ -97,6 +121,7 @@ def storing_data():
 
 
     return render_template('single.html', Tb_name=Tb_name, columns=columns, changer=changer, rows=rows, stored=stored)
+
 @app.route('/save_reset')
 def save_reset():
     # if buat mastiin user masuk ke single.html dari dpan bukan dari blakang karena di browser ada back button setelah user kluar dari single.html temporary semua value di dlmnya bakal ke reset jadi bisa ketangkep sama if kalo dy back button
@@ -150,14 +175,13 @@ def save_reset():
         for item in again:
             ws.append(item)
         wb.save(filename='data.xlsx')
-        excel2img.export_img("data.xlsx", "./static/test_pic/"+str(temporary.table)+".png", str(temporary.table), None)
         # reset smua value
         temporary.table = None
         temporary.columns = None
         temporary.store = []
         temporary.changer = []
         temporary.added = None
-        return redirect('/')
+        return redirect(url_for('home_A'))
 @app.route('/cancel')
 def cancel():
     temporary.store = []
@@ -170,7 +194,7 @@ def cancel():
     temporary.changes = 0
     if 'viewed' in session:
         session.pop('viewed', None)  # delete visits
-    return redirect('/')
+    return redirect(url_for('home_A'))
 @app.route('/back')
 def back():
     Tb_name = temporary.table
@@ -193,7 +217,7 @@ def back():
 def process_delete():
     try:
         wb = load_workbook(filename='data.xlsx')
-        Q =len(wb.sheetnames)
+        Q = len(wb.sheetnames)
         Q = int(Q)
         temporary.lister = []
         lister = []
@@ -357,8 +381,6 @@ def saving():
         for row in temporary.viewing:
             ws.append(row)
         wb.save('data.xlsx')
-        excel2img.export_img("data.xlsx", "./static/test_pic/" + str(temporary.table) + ".png", str(temporary.table),
-                             None)
         session.pop('viewed', None)  # delete visits
         temporary.viewing = []
         temporary.changes = 0
@@ -382,7 +404,81 @@ def gallery():
         images.append(filename)
     print(images)
     return render_template('gallery1.html', images=images)
+@app.route('/Display_A')
+def Display_A():
 
+        wb = load_workbook(filename='data.xlsx')
+        # persiapan untuk buat zip bentuknya ntr jadi = (1,sheet1),(2,sheet2)
+        sheet = []
+        index = []
+        for idx, i in enumerate(wb.sheetnames):
+            sheet.append(i)
+            index.append(idx)
+        # ilangin sheet awal karena g dipake
+        sheet.pop(0)
+        index.pop(0)
+        # buat zip untuke enumerate di html nanti
+        sheets = zip(index, sheet)
+        # all_column_class=[class1,class2] class ny diatas Tbs
+        all_column_class = []
+        for page in wb.sheetnames:
+            activate = wb[page]
+            column_holding = []
+            for x in activate.columns:
+                column_val = []
+                # x nya musti di for lg karna x itu 1row[col1,col2,..] jadi list bukan cell
+                for val in x:
+                    column_val.append(val.value)
+                column_holding.append(column_val)
+                ##print(x)
+            ##print(column_holding)
+            all_column_class.append({page: Tbs(column_holding)})
+
+        return render_template('Display_A.html', all_column_class=all_column_class, sheets=sheets)
+
+@app.route('/save_pic', methods=['GET', 'POST'])
+def save_pic():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return redirect(url_for('save_pic',
+                                    filename=filename))
+    flash('file uploaded')
+    return render_template('index.html')
+
+@app.route('/delete_pic')
+def delete_pic():
+    # delete picture
+    images_holder = []
+    for image in os.listdir("./static/test_pic/"):
+        images_holder.append(image)
+    print(images_holder)
+
+    return render_template('index.html', image_holder=images_holder)
+
+@app.route('/delete_pic_process', methods=['POST'])
+def delete_pic_process():
+    # delete picture process then loop back to delete_pic route
+    images_holder = []
+    for image in os.listdir("./static/test_pic/"):
+        images_holder.append(image)
+    for trgt in images_holder:
+        if trgt in request.form:
+            # deleting target picture
+            os.remove("./static/test_pic/" + trgt)
+            return redirect(url_for('delete_pic'))
+    return
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5005, debug=True)
