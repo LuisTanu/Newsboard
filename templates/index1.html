@@ -172,8 +172,8 @@ span.psw {
   <header>
     <div class="topnav">
   <a class="active" href="index.html">Home</a>
-  <a href="News">News</a>
-  <a href="display.html" title = "display">Display</a>
+  <a href="#">News</a>
+  <a href="{{url_for('Display_A')}}" title = "display">Display</a>
     </div>
 
   </header>
@@ -205,9 +205,18 @@ span.psw {
 </svg>
 
 <div align = "center" id="News">
-<h1>News Board</h1>
+<h1 style="font-size:70px">News Board</h1>
+<p style="font-size:15px">ver 1.24</p>
 
 <button onclick="document.getElementById('id01').style.display='block'" style="width:auto;">Login</button>
+
+<br>
+<p>Made by</p>
+<p>Edward 2201804404</p>
+<p>Luis Tanuwijaya 2201774761</p>
+<p>Michael Reynard 2201794675</p>
+<p>Pranaufar Wiragusti 2201798105</p>
+
 
 <div id="id01" class="modal">
 

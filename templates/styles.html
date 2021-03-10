@@ -124,6 +124,7 @@
 
                 <h3>Tables</h3>
                 <p>Edit existing table sequence</p>
+                <h1>!saving without any value will result deleting this table!</h1>
                 {% if fnally %}
                 <div class="table-responsive">
                     <form action="/edit_to_del" method="post">
@@ -142,7 +143,7 @@
                         <table>
                             <tr>
                                 {% for idx in range(columns) %}
-                                        <td><input id="Tb_name" name="{{idx}}"></td>
+                                        <td><input id="Tb_name" name="{{idx}}" required></td>
                                 {% endfor %}
                                 <button name="enter_button" type="submit" >submit row</button>
                             </tr>
@@ -238,6 +239,11 @@
     <script src="./static/js/jquery-3.2.1.min.js"></script>
     <script src="./static/js/plugins.js"></script>
     <script src="./static/js/main.js"></script>
+    {% if fnally %}
+    <script>
+        document.getElementById('styles').scrollIntoView();
+    </script>
+    {% endif %}
 
 
 </body>

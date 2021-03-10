@@ -40,6 +40,8 @@
 <body id="top" onload="Warn()">
 {% elif warning3 %}
 <body id="top" onload="Warn()">
+{% elif warning4 %}
+<body id="top" onload="Warn()">
 {% else %}
 <body id="top">
 {% endif %}
@@ -122,7 +124,7 @@
             </div>
         </div> <!-- end section-header -->
 
-        <div class="row about-desc" data-aos="fade-up">
+        <div class="row about-desc" data-aos="fade-up" id="main_div">
             <!--div class="col-full slick-slider about-desc__slider"-->
 
                 <div class="about-desc__slide">
@@ -149,7 +151,9 @@
                         {% endif %}
                     {% endwith %}
                     <form method="post" enctype="multipart/form-data" action="/save_pic">
-                      <input type="file" name="file">
+                      <img id="blah" src="#" alt="your image" width="200" height="100" />
+                      <br>
+                      <input type="file" name="file" id="imgInp" >
                       <input type="submit" value="Upload">
                         <a type="button" class="btn btn-primary" href="{{url_for('delete_pic')}}">delete picture</a>
                     </form>
@@ -157,7 +161,7 @@
                 </div>  <!-- end about-desc__slide -->
 
 
-                <div class="about-desc__slide">
+                <div class="about-desc__slide" >
                     <h3 class="item-title">Table</h3>
 
                     <p>
@@ -236,7 +240,8 @@
                     Visualize your created news now!
                 </h1>
                 <p>
-                    <a type="button" class="btn btn-primary pull-middle" onClick="window.open('http://localhost:5005/Display_A');">Click here to Display News</a>
+                    <!--<a type="button" class="btn btn-primary pull-middle" onClick="window.open('http://localhost:5005/Display_A');">Click here to Display News</a>-->
+                    <a type="button" class="btn btn-primary pull-middle" href="{{url_for('Display_A')}}">Click here to Display News</a>
 
                 </p>
 
@@ -287,9 +292,11 @@
                 </div>
 
                 <p>
-                An country demesne message it. Bachelor domestic extended doubtful as concerns at. Morning prudent
-                    removal an letters by. On could my in order never it. Or excited certain sixteen it to parties colonel.
-                    Depending conveying direction has led immediate. Law gate her well on life feet seen rent. On nature or no except it sussex.
+               <p>Made by</p>
+                <p>Edward 2201804404</p>
+                <p>Luis Tanuwijaya 2201774761</p>
+                <p>Michael Reynard 2201794675</p>
+                <p>Pranaufar Wiragusti 2201798105</p>
                 </p>
 
                 <ul class="footer__social">
@@ -345,6 +352,13 @@
             }
         </script>
     {% endif %}
+    {% if warning4 %}
+        <script>
+            function Warn(){
+                alert("saving table failed, no value in the table")
+            }
+        </script>
+    {% endif %}
 
     <script src="./static/js/jquery-3.2.1.min.js"></script>
     <script src="./static/js/plugins.js"></script>
@@ -377,6 +391,38 @@
       }
     }
     </script>
+    <script>
+        function readURL(input) {
+          if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function(e) {
+              $('#blah').attr('src', e.target.result);
+            }
+
+            reader.readAsDataURL(input.files[0]); // convert to base64 string
+          }
+        }
+
+        $("#imgInp").change(function() {
+          readURL(this);
+        });
+    </script>
+    {% if selected %}
+    <script>
+        document.getElementById('main_div').scrollIntoView();
+    </script>
+    {% endif %}
+    {% if lister %}
+    <script>
+        document.getElementById('main_div').scrollIntoView();
+    </script>
+    {% endif %}
+    {% if lister1 %}
+    <script>
+        document.getElementById('main_div').scrollIntoView();
+    </script>
+    {% endif %}
 
 
 </body>

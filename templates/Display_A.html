@@ -76,6 +76,12 @@ table, th, td {
   border: 1px solid black;
   width: 1000px;
 }
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
 </style>
 
 </head>
@@ -86,33 +92,46 @@ table, th, td {
 
 <div class="slideshow-container">
 {% for idx,sheet in sheets %}
-<div class="mySlides fade">
-  <div class="numbertext">1 / 2</div>
-  <table>
-    <!--di dlm all_column_class ada |class dri semua sheet name| di dlm excel bebentuk class, di dlm class ny = ([col1,col2],[col1,col2],..)-->
-    <!--                                                                                                          row1          row2      -->
-    {% for row in all_column_class[idx][sheet].column %}
-    <!--di atas for nya untuk manggil satu2 class utk spesifik sheet di excel -->
-      <tr>
-        {% for col in row %}
-        <!--for diatas untuk manggil setiap colum di setiap row yg udh di jelasin diatas for pertama-->
-        <th>{{col}}</th>
-        {% endfor %}
-      </tr>
-    {% endfor %}
-  </table>
-</div>
+  <div class="mySlides fade">
+    <div class="numbertext">1 / 2</div>
+        <table>
+          <!--di dlm all_column_class ada |class dri semua sheet name| di dlm excel bebentuk class, di dlm class ny = ([col1,col2],[col1,col2],..)-->
+          <!--                                                                                                          row1          row2      -->
+          {% for row in all_column_class[idx][sheet].column %}
+          <!--di atas for nya untuk manggil satu2 class utk spesifik sheet di excel -->
+            <tr>
+              {% for col in row %}
+              <!--for diatas untuk manggil setiap colum di setiap row yg udh di jelasin diatas for pertama-->
+              <th>{{col}}</th>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </table>
+  </div>
 {% endfor %}
-
+{% for object in pictures %}
+  <div class="mySlides fade">
+      <img src="./static/test_pic/{{object}}" height="800" width="400" class="center">
+  </div>
+{% endfor %}
 
 </div>
 <br>
 
 <div style="text-align:center">
-{% for item in all_column_class %}
+{% for i in range(count) %}
   <span class="dot"></span>
 {% endfor %}
 </div>
+<br>
+
+<center>
+<p>Made by</p>
+<p>Edward 2201804404</p>
+<p>Luis Tanuwijaya 2201774761</p>
+<p>Michael Reynard 2201794675</p>
+<p>Pranaufar Wiragusti 2201798105</p>
+</center>
 
 <script>
 var slideIndex = 0;

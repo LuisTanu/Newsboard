@@ -21,6 +21,8 @@ class temporary:
     lister = []
     viewing = []
     changes = 0
+    check = []
+
 
     # coba panggil function
     def add_function(A):
@@ -67,11 +69,17 @@ def process():
     temporary.changer = []
     temporary.added = None
     return render_template('index.html', selected=selected)
-@app.route('/process2', methods=['POST'])
+@app.route('/process2', methods=['POST','GET'])
 def process2():
-    Tb_name = request.form['filename']
-    columns = request.form['columns']
-    columns = int(columns)
+    try:
+        Tb_name = request.form['filename']
+        temporary.check = Tb_name
+        columns = request.form['columns']
+        columns = int(columns)
+    except:
+        #untuk nyelesain masalah undo saat awal create table alurnya dari app route /back
+        Tb_name = temporary.check
+
     try:
         wb = load_workbook(filename='data.xlsx')
     except:
@@ -84,9 +92,12 @@ def process2():
             return render_template('index.html', warning=warning)
 
     # temporary adalah class untuk nyimpen data sementara bisa dilihat awal diatas
-    temporary.table = Tb_name
-    temporary.columns = columns
-    return render_template('single.html', Tb_name=Tb_name, columns=columns)
+    try:
+        temporary.table = Tb_name
+        temporary.columns = columns
+    except:
+        pass
+    return render_template('single.html', Tb_name=temporary.table, columns=temporary.columns)
 @app.route('/storing_data', methods=['POST'])
 def storing_data():
     Tb_name = temporary.table
@@ -141,7 +152,12 @@ def save_reset():
         #ini algorithm ngemisahin data di temporary.store
         columns = temporary.columns
         columns = int(columns)
+        print('temporary debug in save_reset=')
+        print(temporary.store)
         # row quantitiy untuk mengetahui jumlah row. dipake untuk openpyxl masukin value ke specific cell
+        if temporary.store == []:
+            warning4 = 1
+            return render_template("index.html", warning4 = warning4)
         row_quantity = len(temporary.store)/columns
         row_quantity = int(row_quantity)
         for x in range(columns):
@@ -156,6 +172,7 @@ def save_reset():
 
                 # dibawah ini ws['A' + selector], jika selectornya 1 jadi ws['A1'] artinya cell A1 selector didapat dari row_quantity
                 ws['A' + selector] = temporary.store[-index]
+                print('A'+selector)
                 # untuk indexing kita dari belakang temporary.store[-index] ada minus yang artinya ambil dari paling blakang mengapa?
                 # karena kita menggunakan ws.insert_rows(0) yang artinya buat kolom baru di existing kolom ke 0 artinya kolom pertama yang lama geser jadi kolom kedua dan kolom pertama jadi yang baru saja dibuat
                 # makanya kita indexing dri blakang gara2 geser yang dimasukin awal jadi yang terakhir.
@@ -181,6 +198,7 @@ def save_reset():
         temporary.store = []
         temporary.changer = []
         temporary.added = None
+
         return redirect(url_for('home_A'))
 @app.route('/cancel')
 def cancel():
@@ -200,10 +218,14 @@ def back():
     Tb_name = temporary.table
     columns = temporary.columns
     columns = int(columns)
+    print(temporary.store)
     for x in range(columns):
-        #hapus row trakir cnth user input 6 kolom brarti 1 row ada 6 value di pop 6 kali biar 6 value trakir di temporary store ilang
-        temporary.store.pop()
-        temporary.changer.pop()
+        try:
+            #hapus row trakir cnth user input 6 kolom brarti 1 row ada 6 value di pop 6 kali biar 6 value trakir di temporary store ilang
+            temporary.store.pop()
+            temporary.changer.pop()
+        except:
+            return redirect(url_for('process2'))
     stored = temporary.store
     changer = temporary.changer
     #rows adalah jumlah row yang ada, pemakaian ada di single.html
@@ -248,13 +270,13 @@ def deleted():
                             item = str(item)
                             temp = wb[item]
                             wb.remove_sheet(temp)
+                            #?????????????????????????????????
                             security = []
                             for filename in os.listdir("./static/test_pic"):
                                 if filename == (item + ".png"):
                                     security.append(filename)
                                     os.remove("./static/test_pic/" + item + ".png")
-                            if security == []:
-                                return '<h>not found!</h>'
+                            #????????????????????????????????
                             else:
                                 lister.remove(x)
                                 wb.save(filename='data.xlsx')
@@ -301,6 +323,7 @@ def view_process():
                             ws = wb[Tb_name]
                             # make sure temporary.viewing is empty
                             temporary.viewing = []
+                            temporary.columns = len(ws[1])
                             for idx, rows in enumerate(ws.rows):
                                 # isi dri temporary.viewing adalah ([row 1],[row 2], ....) dimana row 1 isi nya [col1,col2,col3,...]>>place_temp
                                 place_temp = []
@@ -320,9 +343,12 @@ def viewed():
         session['viewed'] = 1  # setting session data
         # buat ngecek apakah user menggunakan backk button browser setiap sesi bertambah maka seharusnya changes bertambah
         # param changes harus =1 karena session['viewed'] awal ny 1 changes ny msh 0
+
     param_changes = session['viewed'] - temporary.changes
+
     if param_changes == 1:
         #page tabel yang terpilih temporary.table dan temporary.viewing sdh terisi sebelum masuk route ini.
+
         Tb_name = temporary.table
         fnally = temporary.viewing
         print('fnally={}'.format(fnally))
@@ -332,12 +358,14 @@ def viewed():
         # combine = [[1,[row1],[2,[row2],....]]] biar bisa dpt idx ny di html soalnya jinja g bisa pake enumerate
         combine = zip(index, fnally)
         # untuk <input> ny sesuai sebanyak kolom
-        columns = len(temporary.viewing[0])
+
+        columns = temporary.columns
         return render_template('styles.html', fnally=combine, Tb_name=Tb_name, columns=columns)
     else:
         warning3 = 'please try again'
         session.pop('viewed', None)  # delete visits
         temporary.changes = 0
+
         return render_template('index.html', warning3=warning3)
 @app.route('/edit_to_del',methods=['POST'])
 def edit_to_del():
@@ -347,6 +375,7 @@ def edit_to_del():
         # bwt dapetin index row yg mw dihapus
         for idx, x in enumerate(fnally):
             stridx = str(idx)
+
             if request.form['submit_button'] == stridx:
                 temporary.viewing.pop(idx)
                 temporary.changes = temporary.changes + 1
@@ -370,22 +399,38 @@ def edit_to_insert():
 def saving():
     if temporary.table == None:
         warning3 = 'please try again'
+
         return render_template('index.html', warning3=warning3)
     else:
         wb = load_workbook(filename='data.xlsx')
         # hapus sheet buat baru dgn data baru dari temporary.viewing
         std = wb.get_sheet_by_name(temporary.table)
-        wb.remove_sheet(std)
-        wb.save('data.xlsx')
-        ws = wb.create_sheet(temporary.table)
-        for row in temporary.viewing:
-            ws.append(row)
-        wb.save('data.xlsx')
-        session.pop('viewed', None)  # delete visits
-        temporary.viewing = []
-        temporary.changes = 0
-        temporary.table = None
-        return render_template('index.html')
+        if temporary.viewing == []:
+            wb.remove_sheet(std)
+
+            session.pop('viewed', None)  # delete visits
+            temporary.viewing = []
+            temporary.columns = None
+            temporary.changes = 0
+            temporary.table = None
+            wb.save('data.xlsx')
+            return render_template('index.html')
+        else:
+            wb.remove_sheet(std)
+
+            print(temporary.viewing)
+            wb.save('data.xlsx')
+            ws = wb.create_sheet(temporary.table)
+            for row in temporary.viewing:
+                ws.append(row)
+                print('debug={}'.format(row))
+            wb.save('data.xlsx')
+            session.pop('viewed', None)  # delete visits
+            temporary.viewing = []
+            temporary.columns = None
+            temporary.changes = 0
+            temporary.table = None
+            return render_template('index.html')
 @app.route('/blog')
 def blog():
     return render_template('blog.html')
@@ -406,35 +451,51 @@ def gallery():
     return render_template('gallery1.html', images=images)
 @app.route('/Display_A')
 def Display_A():
+        try:
+            wb = load_workbook(filename='data.xlsx')
+            # persiapan untuk buat zip bentuknya ntr jadi = (1,sheet1),(2,sheet2)
+            sheet = []
+            index = []
+            count = 0
+        except:
+            return 'no workbook found!'
+        try:
+            for idx, i in enumerate(wb.sheetnames):
+                count = count + 1
+                sheet.append(i)
+                index.append(idx)
+            # ilangin sheet awal karena g dipake
+            sheet.pop(0)
+            index.pop(0)
+            # buat zip untuk enumerate di html nanti
+            sheets = zip(index, sheet)
+            # all_column_class=[class1,class2] class ny diatas Tbs
+            all_column_class = []
+            for page in wb.sheetnames:
+                activate = wb[page]
+                column_holding = []
 
-        wb = load_workbook(filename='data.xlsx')
-        # persiapan untuk buat zip bentuknya ntr jadi = (1,sheet1),(2,sheet2)
-        sheet = []
-        index = []
-        for idx, i in enumerate(wb.sheetnames):
-            sheet.append(i)
-            index.append(idx)
-        # ilangin sheet awal karena g dipake
-        sheet.pop(0)
-        index.pop(0)
-        # buat zip untuke enumerate di html nanti
-        sheets = zip(index, sheet)
-        # all_column_class=[class1,class2] class ny diatas Tbs
-        all_column_class = []
-        for page in wb.sheetnames:
-            activate = wb[page]
-            column_holding = []
-            for x in activate.columns:
-                column_val = []
-                # x nya musti di for lg karna x itu 1row[col1,col2,..] jadi list bukan cell
-                for val in x:
-                    column_val.append(val.value)
-                column_holding.append(column_val)
-                ##print(x)
-            ##print(column_holding)
-            all_column_class.append({page: Tbs(column_holding)})
+                for x in activate.rows:
+                    column_val = []
+                    # x nya musti di for lg karna x itu 1row[col1,col2,..] jadi list bukan cell
+                    for val in x:
+                        column_val.append(val.value)
+                    column_holding.append(column_val)
+                    print("debug2={}".format(x))
+                ##print("debug={}".format(column_holding))
+                #fix bug ngambil column hrsny ambil row di column_holding
 
-        return render_template('Display_A.html', all_column_class=all_column_class, sheets=sheets)
+
+                all_column_class.append({page: Tbs(column_holding)})
+            # load all picture
+            pictures = []
+        except:
+            return 'failed in building class'
+        for filename in os.listdir("./static/test_pic"):
+            pictures.append(filename)
+            count = count + 1
+
+        return render_template('Display_A.html', all_column_class=all_column_class, sheets=sheets, pictures=pictures, count=count)
 
 @app.route('/save_pic', methods=['GET', 'POST'])
 def save_pic():
